@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import { BedrockAgent, AgentMode } from "../../common/constructs/bedrock-agent";
 import { PortfolioCreatorKnowledgeBase } from "./knowledge-base";
@@ -23,10 +22,7 @@ export class PortfolioCreatorAgent extends Construct {
     // Create Knowledge Base
     this.knowledgeBase = new PortfolioCreatorKnowledgeBase(this, "KnowledgeBase");
 
-    // Create Action Group
-    this.actionGroup = new PortfolioCreatorActionGroup(this, "ActionGroup");
-
-    // Create Agent
+    // Create Agent first to get agentId
     this.agent = new BedrockAgent(this, "Agent", {
       agentName: "portfolio-creator-agent",
       description: "Agent for creating investment portfolios and analyzing company data",
@@ -46,6 +42,11 @@ export class PortfolioCreatorAgent extends Construct {
         },
       ],
       additionalPolicies: PortfolioCreatorPermissions.getAgentPermissions(this.knowledgeBase.bucket.bucketArn),
+    });
+
+    // Create Action Group after Agent is created, passing the agentId
+    this.actionGroup = new PortfolioCreatorActionGroup(this, "ActionGroup", {
+      agentId: this.agent.agent.attrAgentId, // 传递agentId参数
     });
 
     // Output important information

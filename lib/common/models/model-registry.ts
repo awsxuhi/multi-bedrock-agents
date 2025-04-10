@@ -85,7 +85,14 @@ export class ModelRegistry {
   }
 
   public static getModelId(key: string): string {
-    return this.getModel(key).id;
+    const model = this.getModel(key);
+    // 为嵌入模型构建完整的ARN
+    if (model.type === ModelType.EMBEDDING) {
+      // 使用正确的ARN格式
+      // 对于Titan嵌入模型，使用完整的ARN格式
+      return `arn:aws:bedrock:us-east-1:555555555555:embedding-model/${model.id}`;
+    }
+    return model.id;
   }
 
   // 获取特定类型的所有模型

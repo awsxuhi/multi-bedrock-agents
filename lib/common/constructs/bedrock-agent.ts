@@ -1,6 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import * as bedrock from "aws-cdk-lib/aws-bedrock";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as cr from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 import { ModelRegistry } from "../models/model-registry";
 
@@ -11,12 +13,20 @@ export enum AgentMode {
   SUBAGENT = "SUBAGENT",
 }
 
+// Custom type for action groups that can accept either CDK's type or our custom type
+export type ActionGroupProperty =
+  | bedrock.CfnAgent.AgentActionGroupProperty
+  | {
+      actionGroupName: string;
+      description?: string;
+    };
+
 export interface BedrockAgentProps {
   agentName: string;
   description?: string;
   instruction: string;
   modelKey: string; // Key from ModelRegistry
-  actionGroups?: bedrock.CfnAgent.AgentActionGroupProperty[];
+  actionGroups?: ActionGroupProperty[];
   knowledgeBases?: bedrock.CfnAgent.AgentKnowledgeBaseProperty[];
   agentMode?: AgentMode;
   subAgentIds?: string[]; // For SUPERVISOR and SUPERVISOR_ROUTER modes
@@ -59,16 +69,14 @@ export class BedrockAgent extends Construct {
         }),
     });
 
-    // Create Agent alias
+    // Create Agent alias without specifying routingConfiguration
     this.agentAlias = new bedrock.CfnAgentAlias(this, "AgentAlias", {
       agentId: this.agent.attrAgentId,
       agentAliasName: "latest",
-      routingConfiguration: [
-        {
-          agentVersion: "DRAFT",
-        },
-      ],
     });
+
+    // Make sure alias is created after agent
+    this.agentAlias.addDependsOn(this.agent);
 
     // Output important information
     new cdk.CfnOutput(this, "AgentId", {

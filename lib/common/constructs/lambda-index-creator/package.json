@@ -1,0 +1,9 @@
+{
+  "name": "lambda-index-creator",
+  "version": "1.0.0",
+  "description": "Lambda function for creating OpenSearch Serverless vector index",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

@@ -8,6 +8,7 @@ import { ACTION_GROUP_SCHEMA } from "./schema";
 
 export interface PortfolioCreatorActionGroupProps {
   functionName?: string;
+  agentId?: string; // 添加可选的agentId参数
 }
 
 export class PortfolioCreatorActionGroup extends Construct {
@@ -35,6 +36,7 @@ export class PortfolioCreatorActionGroup extends Construct {
       description: "Action group for portfolio creation and company research",
       lambdaFunction: this.lambda.function,
       apiSchema: ACTION_GROUP_SCHEMA,
+      agentId: props.agentId, // 传递agentId参数
     });
   }
 }
